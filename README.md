@@ -66,7 +66,8 @@ $ pip3 install -r requirements.txt
 ```
 
 ```bash
-$ python3 telegram_bot.py
+$ chmod +x run_telegram_bot.sh
+$ ./run_telegram_bot.sh &
 ```
 
 ## Contributing
