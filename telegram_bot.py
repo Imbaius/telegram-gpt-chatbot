@@ -1,3 +1,4 @@
+import os
 import logging
 from telegram import Update, constants
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
@@ -49,11 +50,11 @@ async def get_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await new_file.download_to_drive("data/telegram.ogg")
 
     # convert to mp3
-    recording_ogg = AudioSegment.from_ogg("telegram.ogg")
+    recording_ogg = AudioSegment.from_ogg("data/telegram.ogg")
     recording_ogg.export("data/telegram.mp3", format="mp3")
 
     # read mp3 and send to openai
-    recording_mp3 = open("telegram.mp3", "rb")
+    recording_mp3 = open("data/telegram.mp3", "rb")
     voice_transcript = openai.Audio.transcribe("whisper-1", recording_mp3)
 
     gpt_response = ask_chat_gpt(voice_transcript['text'])
@@ -105,6 +106,8 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 if __name__ == '__main__':
+    os.makedirs("data", exist_ok=True)
+
     application = ApplicationBuilder().token(TOKEN).build()
 
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), chat_gpt))
