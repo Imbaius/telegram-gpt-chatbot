@@ -55,6 +55,20 @@ To ask a question using a voice message, record a voice message and send it to t
 ]
 ```
 
+## Run it on a RaspberryPi
+
+The chatbot can easily be deployed on a RaspberryPi to run the bot 24/7.
+
+```bash
+$ python3 -m venv ~/telegram-bot
+$ source ~/telegram-bot/bin/activate
+$ pip3 install -r requirements.txt
+```
+
+```bash
+$ python3 telegram_bot.py
+```
+
 ## Contributing
 
 If you'd like to contribute to this project, feel free to submit a pull request. Please make sure to follow the existing code style and include tests for any new functionality.
