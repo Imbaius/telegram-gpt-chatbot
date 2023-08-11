@@ -4,7 +4,6 @@ from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHan
 import openai
 import json
 from pydub import AudioSegment
-from transformers import pipeline
 
 
 TOKEN = open("keys/telegram_bot_key.txt", "r").read().strip("\n")
@@ -47,11 +46,11 @@ async def get_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # get voice message and save
     new_file = await context.bot.get_file(update.message.voice.file_id)
-    await new_file.download_to_drive("telegram.ogg")
+    await new_file.download_to_drive("data/telegram.ogg")
 
     # convert to mp3
     recording_ogg = AudioSegment.from_ogg("telegram.ogg")
-    recording_ogg.export("telegram.mp3", format="mp3")
+    recording_ogg.export("data/telegram.mp3", format="mp3")
 
     # read mp3 and send to openai
     recording_mp3 = open("telegram.mp3", "rb")
@@ -97,12 +96,12 @@ async def export(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.send_message(chat_id=update.effective_chat.id, text=response)
 
-    with open('conversation.json', 'w', encoding='utf-8') as f:
+    with open('data/conversation.json', 'w', encoding='utf-8') as f:
         json.dump(message_history, f, ensure_ascii=False, indent=4)
 
     await reset(update, context)
 
-    await context.bot.send_document(update.effective_chat.id, open('conversation.json', 'rb'))
+    await context.bot.send_document(update.effective_chat.id, open('data/conversation.json', 'rb'))
 
 
 if __name__ == '__main__':
