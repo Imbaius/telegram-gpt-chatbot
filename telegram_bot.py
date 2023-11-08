@@ -2,13 +2,13 @@ import os
 import logging
 from telegram import Update, constants
 from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
-import openai
+from openai import OpenAI
 import json
 from pydub import AudioSegment
 
 
 TOKEN = open("keys/telegram_bot_key.txt", "r").read().strip("\n")
-openai.api_key = open("keys/openai_key.txt", "r").read().strip("\n")
+API_KEY= open("keys/openai_key.txt", "r").read().strip("\n")
 
 if TOKEN == None:
     raise Exception("Telegram bot token is not set. Please set it in the file telegram_bot_key.txt")
@@ -23,17 +23,21 @@ logger.setLevel(logging.INFO)
 message_history = []
 
 def ask_chat_gpt(input_text: str):
-    message_history.append({"role": "user", "content": f"{input_text}"})        
+    message_history.append({"role": "user", "content": f"{input_text}"})
 
-    completion = openai.ChatCompletion.create(
-        model="gpt-4",
+    client = OpenAI(api_key=API_KEY)
+
+    completion = client.chat.completions.create(
+        model="gpt-4-1106-preview",
         messages=message_history
     )
 
     reply_content = completion.choices[0].message.content
     message_history.append({"role": "assistant", "content": f"{reply_content}"})
 
-    logger.info(f"Current message history: {message_history}")  
+    logger.info(f"Current message history: {message_history}")
+
+    client.close()
 
     return reply_content
 
@@ -44,6 +48,8 @@ async def chat_gpt(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id=update.effective_chat.id, text=reply_content)
 
 async def get_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    client = OpenAI(api_key=API_KEY)
     
     # get voice message and save
     new_file = await context.bot.get_file(update.message.voice.file_id)
@@ -55,16 +61,20 @@ async def get_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # read mp3 and send to openai
     recording_mp3 = open("data/telegram.mp3", "rb")
-    voice_transcript = openai.Audio.transcribe("whisper-1", recording_mp3)
+    voice_transcript = client.audio.transcriptions.create(
+        file = recording_mp3, 
+        model = "whisper-1",
+        response_format="text"
+    )
 
-    gpt_response = ask_chat_gpt(voice_transcript['text'])
+    gpt_response = ask_chat_gpt(voice_transcript)
 
     if gpt_response.startswith("\n\n"):
         gpt_response = gpt_response[2:]
 
     logger.info("GPT response: " + gpt_response)
 
-    voice_transcript = voice_transcript['text']
+    voice_transcript = voice_transcript
 
     reply_content = f"<b>{voice_transcript}</b>\n\n" + gpt_response
 
