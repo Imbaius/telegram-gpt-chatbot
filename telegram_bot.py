@@ -28,7 +28,7 @@ def ask_chat_gpt(input_text: str):
     client = OpenAI(api_key=API_KEY)
 
     completion = client.chat.completions.create(
-        model="gpt-4-turbo",
+        model="gpt-4o",
         messages=message_history
     )
 
